@@ -1,10 +1,8 @@
-name: Deploy Redirects to S3 + CloudFront
+name: Deploy to S3 + CloudFront
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'redirects/**'
   workflow_dispatch:
 
 jobs:
@@ -20,6 +18,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Sync index.html to S3 root
+        run: |
+          aws s3 cp index.html s3://baurslma1/index.html \
+            --content-type "text/html" \
+            --cache-control "max-age=60"
+
       - name: Sync redirects to S3
         run: |
           aws s3 sync redirects/ s3://baurslma1/r/ \
@@ -31,4 +35,4 @@ jobs:
         run: |
           aws cloudfront create-invalidation \
             --distribution-id E3T7OLFNU4WYC4 \
-            --paths "/r/*"
+            --paths "/*"
